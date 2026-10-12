@@ -18,11 +18,10 @@ async def get_dashboard_summary(
     except Exception:
         raise HTTPException(status_code=503, detail="Revenue data is temporarily unavailable")
     
-    total_revenue_float = float(revenue_data['total'])
-    
     return {
         "property_id": revenue_data['property_id'],
-        "total_revenue": total_revenue_float,
+        # Sent as a decimal string; floats lose cents.
+        "total_revenue": revenue_data['total'],
         "currency": revenue_data['currency'],
         "reservations_count": revenue_data['count']
     }
