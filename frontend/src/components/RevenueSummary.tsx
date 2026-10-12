@@ -9,31 +9,26 @@ interface RevenueData {
 }
 
 interface RevenueSummaryProps {
-    propertyId?: string;
+    propertyId: string;
     month?: string; // "YYYY-MM"
-    debugTenant?: string; 
     showRaw?: boolean;
 }
 
-export const RevenueSummary: React.FC<RevenueSummaryProps> = ({ propertyId = 'prop-001', month, debugTenant, showRaw }) => {
+export const RevenueSummary: React.FC<RevenueSummaryProps> = ({ propertyId, month, showRaw }) => {
     const [data, setData] = useState<RevenueData | null>(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState('');
-
-    const activeTenant = debugTenant || 'candidate';
 
     useEffect(() => {
         const fetchRevenue = async () => {
             setLoading(true);
             setError('');
             try {
-                // Use SecureAPI to handle authentication automatically
-                // We pass the simulatedTenant option which SecureAPI will attach as a header
+                // Tenant comes from the auth token on the backend.
                 const [year, monthNum] = month ? month.split('-').map(Number) : [];
                 const response = await SecureAPI.getDashboardSummary(propertyId, {
                     year,
                     month: monthNum,
-                    simulatedTenant: activeTenant,
                     timestamp: Date.now()
                 });
                 setData(response);
@@ -46,7 +41,7 @@ export const RevenueSummary: React.FC<RevenueSummaryProps> = ({ propertyId = 'pr
         };
 
         fetchRevenue();
-    }, [propertyId, month, activeTenant]);
+    }, [propertyId, month]);
 
     if (loading) {
         return (
