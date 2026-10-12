@@ -15,3 +15,9 @@ node_modules/
 .DS_Store
 *.log
 vite.config.ts.timestamp-*.mjs
+
+# Build output
+frontend/dist/
+
+# Local env (see frontend/.env.example)
+.env
