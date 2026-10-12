@@ -1,5 +1,5 @@
 from fastapi import APIRouter, Depends, HTTPException, Query
-from typing import Dict, Any, Optional
+from typing import Dict, Any, List, Optional
 from app.services.cache import get_revenue_summary
 from app.core.auth import authenticate_request as get_current_user
 
@@ -11,6 +11,25 @@ def _require_tenant(current_user) -> str:
     if not tenant_id:
         raise HTTPException(status_code=403, detail="User is not assigned to a tenant")
     return tenant_id
+
+
+@router.get("/dashboard/properties")
+async def get_dashboard_properties(current_user: dict = Depends(get_current_user)) -> List[Dict[str, str]]:
+    tenant_id = _require_tenant(current_user)
+
+    from app.core.database_pool import db_pool
+    from sqlalchemy import text
+
+    try:
+        await db_pool.initialize()
+        async with db_pool.get_session() as session:
+            result = await session.execute(
+                text("SELECT id, name FROM properties WHERE tenant_id = :tenant_id ORDER BY id"),
+                {"tenant_id": tenant_id},
+            )
+            return [{"id": row.id, "name": row.name} for row in result]
+    except Exception:
+        raise HTTPException(status_code=503, detail="Properties are temporarily unavailable")
 
 
 @router.get("/dashboard/summary")
